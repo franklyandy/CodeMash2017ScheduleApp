@@ -1,0 +1,3 @@
+rootProject.name = 'CodeMashSchedule'
+
+include ':app'
