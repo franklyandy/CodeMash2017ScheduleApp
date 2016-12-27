@@ -6,6 +6,7 @@ import {
   Text,
   View
 } from 'react-native';
+import Moment from 'moment'
 
 export default class App extends Component {
 
@@ -26,10 +27,19 @@ export default class App extends Component {
     this.loadSessions()
   }
 
+  _formatDate = (date, format) => {
+    return Moment(date).format(format)
+  }
+
   _renderRow(session) {
+    let sessionStartTime = this._formatDate(session.SessionStartTime, 'M.D.YYYY, h:mm A')
+    let sessionEndTime = this._formatDate(session.SessionEndTime, 'h:mm A')
     return (
       <View style={styles.session}>
         <Text style={styles.sessionTitle}>{session.Title}</Text>
+        <Text style={styles.sessionInfo}>
+          When: {sessionStartTime} - {sessionEndTime}
+        </Text>
       </View>
     )
   }
@@ -69,8 +79,8 @@ export default class App extends Component {
           return sessionsByDay
         }, {})
       })
-      .then(sessions => this.setState({
-        dataSource: this.state.dataSource.cloneWithRowsAndSections(sessions)
+      .then(sessionsByDay => this.setState({
+        dataSource: this.state.dataSource.cloneWithRowsAndSections(sessionsByDay)
       }))
       .then(() => this.toggleLoadingIndicator())
       .catch(error => {
@@ -90,7 +100,7 @@ export default class App extends Component {
         }
         <ListView
           dataSource={this.state.dataSource}
-          renderRow={this._renderRow}
+          renderRow={this._renderRow.bind(this)}
           renderSectionHeader={this._renderSectionHeader}
           renderSeparator={this._renderSeparator} />
       </View>
@@ -136,5 +146,9 @@ const styles = StyleSheet.create({
     color: 'darkorange',
     fontWeight: 'bold',
     fontSize: 18,
+    marginBottom: 5,
+  },
+  sessionInfo: {
+    color: 'orange'
   },
 });
