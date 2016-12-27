@@ -34,11 +34,15 @@ export default class App extends Component {
   _renderRow(session) {
     let sessionStartTime = this._formatDate(session.SessionStartTime, 'M.D.YYYY, h:mm A')
     let sessionEndTime = this._formatDate(session.SessionEndTime, 'h:mm A')
+
     return (
       <View style={styles.session}>
         <Text style={styles.sessionTitle}>{session.Title}</Text>
         <Text style={styles.sessionInfo}>
           When: {sessionStartTime} - {sessionEndTime}
+        </Text>
+        <Text style={styles.sessionInfo}>
+          Where: {session.Rooms.join(', ')}
         </Text>
       </View>
     )
