@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import {
+  ActivityIndicator,
   ListView,
   StyleSheet,
   Text,
@@ -42,22 +43,36 @@ export default class App extends Component {
   }
 
   loadSessions() {
+    this.toggleLoadingIndicator()
+
     fetch('https://speakers.codemash.org/api/SessionsData')
       .then(response => response.json())
       .then(sessions => this.setState({
         dataSource: this.state.dataSource.cloneWithRows(sessions)
       }))
+      .then(() => this.toggleLoadingIndicator())
+      .catch(error => console.log(error))
   }
 
   render() {
     return (
       <View style={styles.container}>
+        {this.state.isLoading &&
+        <ActivityIndicator
+          color='darkorange'
+          style={styles.loadingIndicator}
+          animating={this.state.isLoading} />
+        }
         <ListView
           dataSource={this.state.dataSource}
           renderRow={this._renderRow}
           renderSeparator={this._renderSeparator} />
       </View>
     );
+  }
+
+  toggleLoadingIndicator() {
+    this.setState({isLoading: !this.state.isLoading})
   }
 }
 
@@ -68,6 +83,9 @@ const styles = StyleSheet.create({
     alignItems: 'stretch',
     backgroundColor: '#F5FCFF',
     paddingTop: 25
+  },
+  loadingIndicator: {
+    height: 80
   },
   rowSeparator: {
     borderColor: 'orange',
