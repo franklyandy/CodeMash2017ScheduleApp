@@ -14,13 +14,13 @@ export default class App extends Component {
         rowHasChanged: (r1, r2) => r1 !== r2
       })
 
-      const sessions = [
-        {Title: 'Happy'}, {Title: 'Sail'}
-      ]
-
       this.state = {
-        dataSource: ds.cloneWithRows(sessions)
+        dataSource: ds
       }
+  }
+
+  componentDidMount() {
+    this.loadSessions()
   }
 
   _renderRow(session) {
@@ -39,6 +39,14 @@ export default class App extends Component {
         style={styles.rowSeparator}
         key={key} />
     )
+  }
+
+  loadSessions() {
+    fetch('https://speakers.codemash.org/api/SessionsData')
+      .then(response => response.json())
+      .then(sessions => this.setState({
+        dataSource: this.state.dataSource.cloneWithRows(sessions)
+      }))
   }
 
   render() {
