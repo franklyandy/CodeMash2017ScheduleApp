@@ -1,24 +1,53 @@
 import React, { Component } from 'react'
 import {
+  ListView,
   StyleSheet,
   Text,
   View
 } from 'react-native';
 
 export default class App extends Component {
+
+  constructor() {
+      super()
+      const ds = new ListView.DataSource({
+        rowHasChanged: (r1, r2) => r1 !== r2
+      })
+
+      const sessions = [
+        {Title: 'Happy'}, {Title: 'Sail'}
+      ]
+
+      this.state = {
+        dataSource: ds.cloneWithRows(sessions)
+      }
+  }
+
+  _renderRow(session) {
+    return (
+      <View style={styles.session}>
+        <Text style={styles.sessionTitle}>{session.Title}</Text>
+      </View>
+    )
+  }
+
+  _renderSeparator(sectionID, rowID, adjacentRowHighlighted) {
+    let key = sectionID + ":" + rowID
+
+    return (
+      <View
+        style={styles.rowSeparator}
+        key={key} />
+    )
+  }
+
   render() {
     return (
       <View style={styles.container}>
-        <Text style={styles.welcome}>
-          Welcome to React Native!
-        </Text>
-        <Text style={styles.instructions}>
-          To get started, edit index.android.js
-        </Text>
-        <Text style={styles.instructions}>
-          Double tap R on your keyboard to reload,{'\n'}
-          Shake or press menu button for dev menu
-        </Text>
+        <ListView
+          dataSource={this.state.dataSource}
+          renderRow={this._renderRow}
+          renderSeparator={this._renderSeparator} />
       </View>
     );
   }
@@ -28,17 +57,22 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
+    alignItems: 'stretch',
     backgroundColor: '#F5FCFF',
+    paddingTop: 25
   },
-  welcome: {
-    fontSize: 20,
-    textAlign: 'center',
-    margin: 10,
+  rowSeparator: {
+    borderColor: 'orange',
+    opacity: .3,
+    borderWidth: 1,
+    marginHorizontal: 10,
   },
-  instructions: {
-    textAlign: 'center',
-    color: '#333333',
-    marginBottom: 5,
+  session: {
+    padding: 10
+  },
+  sessionTitle: {
+    color: 'darkorange',
+    fontWeight: 'bold',
+    fontSize: 18,
   },
 });
