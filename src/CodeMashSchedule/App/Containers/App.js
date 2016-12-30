@@ -1,17 +1,79 @@
 import React, { Component } from 'react'
 import {
   ActivityIndicator,
+  Image,
   ListView,
+  Navigator,
+  ScrollView,
   StyleSheet,
   Text,
+  TouchableHighlight,
+  TouchableOpacity,
   View
 } from 'react-native';
-import Moment from 'moment'
+import moment from 'moment'
 
-export default class App extends Component {
+class SessionDetails extends Component {
 
-  constructor() {
-      super()
+  constructor(props) {
+    super(props)
+
+    this.state = {
+      session: props.session
+    }
+  }
+
+  render() {
+    let session = this.state.session,
+        sessionStartTime = new moment(session.SessionStartTime),
+        sessionEndTime = new moment(session.SessionEndTime)
+
+    return (
+      <View style={styles.container}>
+        <ScrollView>
+          <View style={[{backgroundColor: 'darkorange', padding: 20}]}>
+            <View style={{justifyContent: 'center', flexDirection: 'row', marginTop: 40}}>
+            { session.Speakers.map(speaker => {
+                return (
+                  <View style={{flex: 1}}>
+                    <Image
+                      style={{borderRadius: 50, width: 100, height: 100, alignSelf: 'center'}}
+                      source={{uri: 'https:' + speaker.GravatarUrl}}
+                    />
+                    <Text style={[{textAlign: 'center', color: 'white', marginTop: 5}]}>{speaker.FirstName} {speaker.LastName}</Text>
+                  </View>
+                )
+              })
+            }
+            </View>
+            <Text style={[{color: 'white', marginTop: 20, marginBottom: 10, textAlign: 'center', fontSize: 18, flex: 1, flexDirection: 'row', flexWrap: 'wrap', fontWeight: '700'}]}>
+              {this.state.session.Title}
+            </Text>
+            <Text style={[{color: 'white', textAlign: 'center'}]}>
+              {sessionStartTime.format('M.D.YYYY')}
+            </Text>
+            <Text style={[{color: 'white', textAlign: 'center'}]}>
+              {sessionStartTime.format('h:mm A')} - {sessionEndTime.format('h:mm A')}
+            </Text>
+            <Text style={[{color: 'white', textAlign: 'center'}]}>
+              {session.Rooms.join(', ')}
+            </Text>
+          </View>
+          <Text style={[styles.primaryText, {paddingHorizontal: 20, paddingVertical: 15, fontSize: 16}]}>
+            {this.state.session.Abstract}
+          </Text>
+        </ScrollView>
+      </View>
+    )
+  }
+}
+
+class SessionsList extends Component {
+
+  constructor(props) {
+      super(props)
+
+      this._loadSessionDetails = this._loadSessionDetails.bind(this)
 
       const ds = new ListView.DataSource({
         rowHasChanged: (r1, r2) => r1 !== r2,
@@ -28,7 +90,7 @@ export default class App extends Component {
   }
 
   _formatDate = (date, format) => {
-    return Moment(date).format(format)
+    return moment(date).format(format)
   }
 
   _renderRow(session) {
@@ -36,15 +98,17 @@ export default class App extends Component {
     let sessionEndTime = this._formatDate(session.SessionEndTime, 'h:mm A')
 
     return (
-      <View style={styles.session}>
-        <Text style={styles.sessionTitle}>{session.Title}</Text>
-        <Text style={styles.sessionInfo}>
-          When: {sessionStartTime} - {sessionEndTime}
-        </Text>
-        <Text style={styles.sessionInfo}>
-          Where: {session.Rooms.join(', ')}
-        </Text>
-      </View>
+      <TouchableHighlight onPress={() =>this._loadSessionDetails(session)}>
+        <View style={styles.session}>
+          <Text style={styles.sessionTitle}>{session.Title}</Text>
+          <Text style={styles.sessionInfo}>
+            When: {sessionStartTime} - {sessionEndTime}
+          </Text>
+          <Text style={styles.sessionInfo}>
+            Where: {session.Rooms.join(', ')}
+          </Text>
+        </View>
+      </TouchableHighlight>
     )
   }
 
@@ -64,6 +128,12 @@ export default class App extends Component {
         style={styles.rowSeparator}
         key={key} />
     )
+  }
+
+  _loadSessionDetails(session) {
+    this.props.navigator.push({
+      session: session
+    })
   }
 
   loadSessions() {
@@ -116,22 +186,93 @@ export default class App extends Component {
   }
 }
 
+export default class App extends Component {
+
+  constructor() {
+    super()
+  }
+
+  render() {
+    return (
+      <Navigator
+        initialRoute={{index: 0}}
+        renderScene={this._renderScene}
+        navigationBar={
+          <Navigator.NavigationBar
+            style={styles.navBar}
+            routeMapper={{
+                LeftButton: (route, navigator, index, navState) => {
+                  if(index === 0) {
+                    return null
+                  }
+
+                  return (
+                    <TouchableOpacity
+                      style={styles.navBarLeftButton}
+                      onPress={() => navigator.pop()}>
+                      <Text style={[styles.navBarText, styles.navBarButtonText]}>
+                        {'<'}
+                      </Text>
+                    </TouchableOpacity>)
+                },
+                RightButton: (route, navigator, index, navState) => {
+                  return null
+                },
+                Title: (route, navigator, index, navState) => {
+                  return (
+                    <Text style={[styles.navBarText, styles.navBarTitleText]}>
+                      {route.title}
+                    </Text>
+                  )
+                }
+            }}
+            />
+        } />
+    )
+  }
+
+  _renderScene(route, navigator) {
+    if(route.index === 0) {
+      route.title = 'Sessions'
+
+      return (
+        <View style={styles.container}>
+          <SessionsList navigator={navigator} />
+        </View>
+      )
+    }
+    else {
+      route.title = 'Session Details'
+
+      return (
+        <SessionDetails session={route.session} />
+      )
+    }
+  }
+}
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
     alignItems: 'stretch',
+    justifyContent: 'flex-start',
     backgroundColor: '#F5FCFF',
-    paddingTop: 25,
+    paddingTop: 30,
   },
   loadingIndicator: {
-    height: 80
+    height: 75
+  },
+  primaryText: {
+    color: 'darkorange'
   },
   rowSeparator: {
     borderColor: 'orange',
     opacity: .3,
     borderWidth: 1,
     marginHorizontal: 10,
+  },
+  scene: {
+    paddingTop: 30
   },
   sectionHeader: {
     backgroundColor: 'darkorange',
@@ -154,5 +295,26 @@ const styles = StyleSheet.create({
   },
   sessionInfo: {
     color: 'orange'
+  },
+  navBar: {
+    backgroundColor: 'white',
+  },
+  navBarText: {
+    fontSize: 16,
+    marginVertical: 10,
+    fontWeight: '700'
+  },
+  navBarTitleText: {
+    color: 'darkorange',
+    marginVertical: 9,
+  },
+  navBarLeftButton: {
+    paddingLeft: 10,
+  },
+  navBarRightButton: {
+    paddingRight: 10,
+  },
+  navBarButtonText: {
+    color: 'darkorange',
   },
 });
